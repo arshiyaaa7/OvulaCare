@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { BoltBadge, BuiltWithBoltButton } from '@/components/ui/bolt-elements';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { motion } from 'framer-motion';
 import { 
@@ -60,13 +61,21 @@ const SparkleAnimation = () => (
   </div>
 );
 
-const FeatureCard = ({ feature, index }: { feature: typeof FEATURES[0], index: number }) => {
+const InteractiveFeatureCard = ({ feature, index }: { feature: any, index: number }) => {
   const Icon = 
     feature.icon === 'ActivitySquare' ? ActivitySquare : 
     feature.icon === 'BookHeart' ? BookHeart : 
     feature.icon === 'Compass' ? Compass : Calendar;
 
   const emojis = ['🩺', '💖', '🧘‍♀️', '📅'];
+  const gradients = [
+    'from-pink-100 to-rose-100',
+    'from-lavender-100 to-purple-100', 
+    'from-teal-100 to-cyan-100',
+    'from-pink-100 to-lavender-100'
+  ];
+
+  const links = ['/symptom-checker', '/journal', '/dashboard', '/cycle-tracker'];
 
   return (
     <motion.div
@@ -75,31 +84,33 @@ const FeatureCard = ({ feature, index }: { feature: typeof FEATURES[0], index: n
       transition={{ duration: 0.5, delay: index * 0.1 }}
       whileHover={{ 
         scale: 1.05, 
-        boxShadow: "0 20px 40px rgba(236, 72, 153, 0.15)",
-        transition: { duration: 0.2 }
+        y: -5,
+        boxShadow: "0 25px 50px rgba(236, 72, 153, 0.15)",
+        transition: { duration: 0.3 }
       }}
-      className="group relative overflow-hidden rounded-2xl bg-white/80 backdrop-blur-sm p-8 shadow-lg border border-white/20 hover:border-pink-200/50 transition-all duration-300"
+      className="group relative overflow-hidden rounded-2xl bg-white/90 backdrop-blur-sm p-6 shadow-lg border border-white/30 hover:border-pink-200/60 transition-all duration-300 cursor-pointer"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-pink-50/50 via-lavender-50/30 to-teal-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div className={`absolute inset-0 bg-gradient-to-br ${gradients[index]} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
       
       <div className="relative z-10">
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-100 to-lavender-100 shadow-lg">
-            <Icon className="h-8 w-8 text-pink-600" />
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-pink-100 to-lavender-100 shadow-md group-hover:shadow-lg transition-shadow duration-300">
+            <Icon className="h-6 w-6 text-pink-600 group-hover:text-pink-700 transition-colors duration-300" />
           </div>
-          <span className="text-3xl">{emojis[index]}</span>
+          <span className="text-2xl group-hover:scale-110 transition-transform duration-300">{emojis[index]}</span>
         </div>
         
-        <h3 className="mb-3 text-xl font-bold text-gray-900">{feature.title}</h3>
-        <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+        <h3 className="mb-2 text-lg font-bold text-gray-900 group-hover:text-gray-800">{feature.title}</h3>
+        <p className="text-gray-600 text-sm leading-relaxed mb-4">{feature.description}</p>
         
-        <motion.div 
-          className="mt-6 flex items-center text-pink-600 font-medium group-hover:text-pink-700"
-          whileHover={{ x: 5 }}
-        >
-          <span>Explore</span>
-          <ArrowRight className="ml-2 h-4 w-4" />
-        </motion.div>
+        <Link to={links[index]}>
+          <motion.div 
+            className="flex items-center text-pink-600 font-medium group-hover:text-pink-700 text-sm"
+            whileHover={{ x: 3 }}
+          >
+            <span>→ Explore</span>
+          </motion.div>
+        </Link>
       </div>
     </motion.div>
   );
@@ -242,16 +253,16 @@ export function LandingPage() {
               </FloatingElement>
               
               <FloatingElement delay={0.2}>
-                <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-gray-900 leading-tight">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-gray-900 leading-tight">
                   {APP_NAME}
-                  <span className="block text-3xl md:text-4xl font-medium bg-gradient-to-r from-pink-600 via-lavender-600 to-teal-600 bg-clip-text text-transparent mt-4">
+                  <span className="block text-2xl sm:text-3xl md:text-4xl font-medium bg-gradient-to-r from-pink-600 via-lavender-600 to-teal-600 bg-clip-text text-transparent mt-4">
                     {APP_TAGLINE}
                   </span>
                 </h1>
               </FloatingElement>
               
               <FloatingElement delay={0.4}>
-                <p className="text-xl text-gray-700 leading-relaxed max-w-lg">
+                <p className="text-lg sm:text-xl text-gray-700 leading-relaxed max-w-lg">
                   Transform your PCOS journey with AI-powered support, personalized insights, 
                   and a community that truly understands. You're not alone in this. 💕
                 </p>
@@ -263,13 +274,14 @@ export function LandingPage() {
                     <motion.div
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
+                      className="w-full sm:w-auto"
                     >
                       <Button 
                         size="lg" 
-                        className="w-full sm:w-auto bg-gradient-to-r from-pink-500 to-lavender-500 hover:from-pink-600 hover:to-lavender-600 text-white font-semibold px-8 py-4 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300"
+                        className="w-full sm:w-auto bg-gradient-to-r from-pink-500 to-lavender-500 hover:from-pink-600 hover:to-lavender-600 text-white font-semibold px-6 sm:px-8 py-4 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300"
                       >
-                        Feeling overwhelmed? Let's talk 💬
-                        <ArrowRight className="ml-2 h-5 w-5" />
+                        <span className="text-center">Feeling overwhelmed? Let's talk 💬</span>
+                        <ArrowRight className="ml-2 h-5 w-5 flex-shrink-0" />
                       </Button>
                     </motion.div>
                   </Link>
@@ -278,11 +290,12 @@ export function LandingPage() {
                     <motion.div
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
+                      className="w-full sm:w-auto"
                     >
                       <Button 
                         size="lg" 
                         variant="outline" 
-                        className="w-full sm:w-auto border-2 border-pink-300 text-pink-700 hover:bg-pink-50 font-semibold px-8 py-4 rounded-2xl"
+                        className="w-full sm:w-auto border-2 border-pink-300 text-pink-700 hover:bg-pink-50 font-semibold px-6 sm:px-8 py-4 rounded-2xl"
                       >
                         Learn More
                       </Button>
@@ -292,7 +305,7 @@ export function LandingPage() {
               </FloatingElement>
               
               <FloatingElement delay={0.8}>
-                <div className="flex items-center space-x-6 text-sm text-gray-600">
+                <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start space-y-3 sm:space-y-0 sm:space-x-6 text-sm text-gray-600">
                   <div className="flex items-center">
                     <Shield className="h-5 w-5 text-green-500 mr-2" />
                     <span>HIPAA Compliant</span>
@@ -311,12 +324,12 @@ export function LandingPage() {
                   <img 
                     src="https://images.pexels.com/photos/3768131/pexels-photo-3768131.jpeg?auto=compress&cs=tinysrgb&w=800" 
                     alt="Diverse women supporting each other"
-                    className="rounded-3xl shadow-2xl w-full h-[500px] object-cover"
+                    className="rounded-3xl shadow-2xl w-full h-[400px] sm:h-[500px] object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-pink-900/20 to-transparent rounded-3xl"></div>
                   
                   {/* Floating AI Preview */}
-                  <div className="absolute -bottom-6 -left-6 w-80">
+                  <div className="absolute -bottom-6 -left-6 w-72 sm:w-80 hidden lg:block">
                     <AIPreviewCard />
                   </div>
                 </div>
@@ -330,31 +343,63 @@ export function LandingPage() {
         <div className="absolute -right-24 top-1/2 h-96 w-96 rounded-full bg-teal-200 opacity-20 blur-3xl"></div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-24 bg-gradient-to-b from-white to-gray-50">
-        <div className="container">
-          <div className="mb-16 text-center">
+      {/* Built with Bolt Button - Below navigation */}
+      <section className="py-4 bg-white border-b">
+        <div className="container flex justify-center">
+          <BuiltWithBoltButton />
+        </div>
+      </section>
+
+      {/* Interactive Features Section */}
+      <section className="py-16 bg-white relative overflow-hidden">
+        <div className="container relative z-10">
+          <div className="mb-12 text-center">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <h2 className="mb-6 text-4xl md:text-5xl font-bold tracking-tight text-gray-900">
-                Comprehensive PCOS Support
+              <h2 className="mb-4 text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-gray-900">
+                Explore Our AI-Powered Tools
               </h2>
-              <p className="mx-auto max-w-3xl text-xl text-gray-600 leading-relaxed">
-                Our suite of AI-powered tools designed specifically for women navigating PCOS, 
-                combining mental health support with symptom tracking and personalized care.
+              <p className="mx-auto max-w-2xl text-lg sm:text-xl text-gray-600 leading-relaxed">
+                Supporting your mental, physical & emotional wellbeing.
               </p>
             </motion.div>
           </div>
           
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-12">
             {FEATURES.map((feature, index) => (
-              <FeatureCard key={feature.title} feature={feature} index={index} />
+              <InteractiveFeatureCard key={feature.title} feature={feature} index={index} />
             ))}
           </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="text-center"
+          >
+            <Link to="/signup">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Button 
+                  size="lg" 
+                  className="bg-gradient-to-r from-pink-500 to-lavender-500 hover:from-pink-600 hover:to-lavender-600 text-white font-semibold px-10 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  Start Now
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </motion.div>
+            </Link>
+          </motion.div>
         </div>
+
+        {/* Subtle background decoration */}
+        <div className="absolute top-1/2 left-1/4 h-32 w-32 rounded-full bg-pink-100 opacity-30 blur-2xl"></div>
+        <div className="absolute bottom-1/4 right-1/4 h-40 w-40 rounded-full bg-lavender-100 opacity-30 blur-2xl"></div>
       </section>
 
       {/* Testimonials Carousel */}
@@ -368,10 +413,10 @@ export function LandingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <h2 className="mb-6 text-4xl md:text-5xl font-bold tracking-tight text-gray-900">
+              <h2 className="mb-6 text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-gray-900">
                 Stories of Hope & Healing
               </h2>
-              <p className="mx-auto max-w-3xl text-xl text-gray-600 leading-relaxed">
+              <p className="mx-auto max-w-3xl text-lg sm:text-xl text-gray-600 leading-relaxed">
                 Real women, real stories, real transformation. Join thousands who have found 
                 support, understanding, and healing through OvulaCare AI.
               </p>
@@ -434,16 +479,16 @@ export function LandingPage() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-pink-500 via-lavender-500 to-teal-500 p-12 md:p-16 text-center"
+            className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-pink-500 via-lavender-500 to-teal-500 p-8 sm:p-12 md:p-16 text-center"
           >
             <div className="absolute inset-0 bg-black/10"></div>
             <SparkleAnimation />
             
             <div className="relative z-10 mx-auto max-w-4xl text-white">
-              <h2 className="mb-6 text-4xl md:text-6xl font-bold tracking-tight">
+              <h2 className="mb-6 text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight">
                 Join the Movement
               </h2>
-              <p className="mb-8 text-xl md:text-2xl opacity-90 leading-relaxed">
+              <p className="mb-8 text-lg sm:text-xl md:text-2xl opacity-90 leading-relaxed">
                 Begin your healing journey today. Join thousands of women who have found 
                 support, understanding, and personalized guidance through OvulaCare AI.
               </p>
@@ -453,6 +498,7 @@ export function LandingPage() {
                   <motion.div
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
+                    className="w-full sm:w-auto"
                   >
                     <Button 
                       size="lg" 
@@ -468,6 +514,7 @@ export function LandingPage() {
                   <motion.div
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
+                    className="w-full sm:w-auto"
                   >
                     <Button 
                       size="lg" 
@@ -480,7 +527,7 @@ export function LandingPage() {
                 </Link>
               </div>
               
-              <div className="mt-8 flex justify-center items-center space-x-8 text-sm opacity-80">
+              <div className="mt-8 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-8 text-sm opacity-80">
                 <div className="flex items-center">
                   <Heart className="h-4 w-4 mr-2" />
                   <span>Free to start</span>

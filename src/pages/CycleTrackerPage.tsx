@@ -45,6 +45,7 @@ import {
 import { CycleData, CycleDay } from '@/types';
 import { useAuth } from '@/providers/AuthProvider';
 import { addDays, format, startOfToday, differenceInDays, isWithinInterval, isSameDay } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 export function CycleTrackerPage() {
   const { user } = useAuth();
@@ -281,6 +282,10 @@ export function CycleTrackerPage() {
     return dayData ? dayData.mood : undefined;
   };
 
+  const hasDataForDay = (date: Date): boolean => {
+    return !!getDayData(date);
+  };
+
   const getAvgCycleLength = (): number => {
     if (!cycleData || cycleData.cycles.length < 2) return 28; // Default cycle length
     
@@ -446,7 +451,7 @@ export function CycleTrackerPage() {
                   <CardHeader>
                     <CardTitle>Cycle Calendar</CardTitle>
                     <CardDescription>
-                      Click on a day to log menstruation, symptoms, and mood
+                      Click on a day to log menstruation, symptoms, and mood. Only days with data are highlighted.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -457,34 +462,62 @@ export function CycleTrackerPage() {
                       className="rounded-md border"
                       modifiers={{
                         menstruation: (date) => isMenstruationDay(date),
+                        hasData: (date) => hasDataForDay(date),
+                        noData: (date) => !hasDataForDay(date) && date < today,
                       }}
                       modifiersClassNames={{
-                        menstruation: "bg-pink-200 text-pink-900 font-bold",
+                        menstruation: "bg-pink-200 text-pink-900 font-bold border-pink-400",
+                        hasData: "bg-blue-50 border-blue-200",
+                        noData: "text-gray-300 opacity-50",
                       }}
                       components={{
-                        DayContent: (props) => (
-                          <div className="flex flex-col items-center justify-center">
-                            <span>{props.day}</span>
-                            {isMenstruationDay(props.date) && (
-                              <Droplets className="h-3 w-3 text-pink-500" />
-                            )}
-                            <span className="text-xs">
-                              {getMoodEmoji(getMoodForDay(props.date))}
-                            </span>
-                          </div>
-                        ),
+                        DayContent: (props) => {
+                          const hasData = hasDataForDay(props.date);
+                          const isMenstruation = isMenstruationDay(props.date);
+                          const mood = getMoodForDay(props.date);
+                          
+                          return (
+                            <div className={cn(
+                              "flex flex-col items-center justify-center relative w-full h-full",
+                              hasData ? "font-medium" : "opacity-50"
+                            )}>
+                              <span className={cn(
+                                hasData ? "text-gray-900" : "text-gray-400"
+                              )}>
+                                {props.day}
+                              </span>
+                              <div className="flex items-center space-x-1 mt-1">
+                                {isMenstruation && (
+                                  <Droplets className="h-3 w-3 text-pink-500" />
+                                )}
+                                {mood && (
+                                  <span className="text-xs">
+                                    {getMoodEmoji(mood)}
+                                  </span>
+                                )}
+                              </div>
+                              {!hasData && props.date < today && (
+                                <div className="absolute inset-0 bg-gray-100 opacity-30 rounded"></div>
+                              )}
+                            </div>
+                          );
+                        },
                       }}
                     />
                   </CardContent>
                   <CardFooter className="flex justify-between">
                     <div className="flex items-center space-x-4 text-sm">
                       <div className="flex items-center">
-                        <div className="mr-1 h-3 w-3 rounded-full bg-pink-200"></div>
+                        <div className="mr-1 h-3 w-3 rounded-full bg-pink-200 border border-pink-400"></div>
                         <span>Period</span>
                       </div>
                       <div className="flex items-center">
                         <span className="mr-1">😌</span>
                         <span>Mood</span>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="mr-1 h-3 w-3 rounded-full bg-blue-50 border border-blue-200"></div>
+                        <span>Data logged</span>
                       </div>
                     </div>
                     <Button onClick={() => {

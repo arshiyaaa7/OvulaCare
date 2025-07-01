@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { 
@@ -30,9 +30,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { Loader2, CheckCircle2, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Loader2, CheckCircle2, ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { PCOS_TYPES, SYMPTOMS } from '@/lib/constants';
 import { PCOSType } from '@/types';
+import { cn } from '@/lib/utils';
 
 const stepsSchema = [
   z.object({
@@ -55,64 +56,73 @@ const stepsSchema = [
   }),
 ];
 
-const FormStep1 = ({ form }: { form: any }) => (
-  <>
-    <FormField
-      control={form.control}
-      name="cycleRegularity"
-      render={({ field }) => (
-        <FormItem className="space-y-3">
-          <FormLabel>How would you describe your menstrual cycle regularity?</FormLabel>
-          <FormControl>
-            <RadioGroup
-              onValueChange={field.onChange}
-              defaultValue={field.value}
-              className="flex flex-col space-y-1"
-            >
-              <FormItem className="flex items-center space-x-3 space-y-0">
-                <FormControl>
-                  <RadioGroupItem value="regular" />
-                </FormControl>
-                <FormLabel className="font-normal">
-                  Regular (every 21-35 days)
-                </FormLabel>
-              </FormItem>
-              <FormItem className="flex items-center space-x-3 space-y-0">
-                <FormControl>
-                  <RadioGroupItem value="irregular" />
-                </FormControl>
-                <FormLabel className="font-normal">
-                  Somewhat irregular (varies by a week or more)
-                </FormLabel>
-              </FormItem>
-              <FormItem className="flex items-center space-x-3 space-y-0">
-                <FormControl>
-                  <RadioGroupItem value="very-irregular" />
-                </FormControl>
-                <FormLabel className="font-normal">
-                  Very irregular (unpredictable)
-                </FormLabel>
-              </FormItem>
-              <FormItem className="flex items-center space-x-3 space-y-0">
-                <FormControl>
-                  <RadioGroupItem value="absent" />
-                </FormControl>
-                <FormLabel className="font-normal">
-                  Absent (no periods for 3+ months)
-                </FormLabel>
-              </FormItem>
-            </RadioGroup>
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  </>
-);
+const FormStep1 = ({ form }: { form: any }) => {
+  const selectedValue = form.watch('cycleRegularity');
+  
+  return (
+    <>
+      <FormField
+        control={form.control}
+        name="cycleRegularity"
+        render={({ field }) => (
+          <FormItem className="space-y-3">
+            <FormLabel>How would you describe your menstrual cycle regularity?</FormLabel>
+            <FormControl>
+              <RadioGroup
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                className="flex flex-col space-y-2"
+              >
+                {[
+                  { value: 'regular', label: 'Regular (every 21-35 days)' },
+                  { value: 'irregular', label: 'Somewhat irregular (varies by a week or more)' },
+                  { value: 'very-irregular', label: 'Very irregular (unpredictable)' },
+                  { value: 'absent', label: 'Absent (no periods for 3+ months)' }
+                ].map((option) => (
+                  <FormItem key={option.value} className="flex items-center space-x-3 space-y-0">
+                    <FormControl>
+                      <div className={cn(
+                        "relative flex items-center space-x-3 rounded-lg border-2 p-4 cursor-pointer transition-all duration-200",
+                        selectedValue === option.value 
+                          ? "border-pink-500 bg-pink-50 shadow-md" 
+                          : "border-gray-200 hover:border-pink-300 hover:bg-pink-25"
+                      )}>
+                        <RadioGroupItem 
+                          value={option.value} 
+                          className={cn(
+                            "border-2",
+                            selectedValue === option.value 
+                              ? "border-pink-500 text-pink-500" 
+                              : "border-gray-300"
+                          )}
+                        />
+                        <FormLabel className={cn(
+                          "font-normal cursor-pointer flex-1",
+                          selectedValue === option.value ? "text-pink-700 font-medium" : "text-gray-700"
+                        )}>
+                          {option.label}
+                        </FormLabel>
+                        {selectedValue === option.value && (
+                          <Check className="h-5 w-5 text-pink-500" />
+                        )}
+                      </div>
+                    </FormControl>
+                  </FormItem>
+                ))}
+              </RadioGroup>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </>
+  );
+};
 
 const FormStep2 = ({ form }: { form: any }) => {
   const physicalSymptomsList = SYMPTOMS.filter(s => s.category === 'physical');
-  
+  const selectedSymptoms = form.watch('physicalSymptoms') || [];
+
   return (
     <>
       <FormField
@@ -122,40 +132,63 @@ const FormStep2 = ({ form }: { form: any }) => {
           <FormItem>
             <div className="mb-4">
               <FormLabel className="text-base">Which physical symptoms do you experience?</FormLabel>
-              <FormDescription>
-                Select all that apply to you
-              </FormDescription>
+              <FormDescription>Select all that apply to you</FormDescription>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {physicalSymptomsList.map((symptom) => (
                 <FormField
                   key={symptom.id}
                   control={form.control}
                   name="physicalSymptoms"
                   render={({ field }) => {
+                    const selectedSymptoms = field.value as string[];
+                    const isSelected = selectedSymptoms.includes(symptom.id);
                     return (
                       <FormItem
-                        key={symptom.id}
                         className="flex flex-row items-start space-x-3 space-y-0"
                       >
                         <FormControl>
-                          <Checkbox
-                            checked={field.value?.includes(symptom.id)}
-                            onCheckedChange={(checked) => {
-                              return checked
-                                ? field.onChange([...field.value, symptom.id])
-                                : field.onChange(
-                                    field.value?.filter(
-                                      (value: string) => value !== symptom.id
-                                    )
-                                  );
-                            }}
-                          />
+                          <div className={cn(
+                            "relative flex items-start space-x-3 rounded-lg border-2 p-3 cursor-pointer transition-all duration-200",
+                            isSelected
+                              ? "border-pink-500 bg-pink-50 shadow-md"
+                              : "border-gray-200 hover:border-pink-300 hover:bg-pink-25"
+                          )}>
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={(checked) => {
+                                return checked
+                                  ? field.onChange([...selectedSymptoms, symptom.id])
+                                  : field.onChange(
+                                      selectedSymptoms.filter(
+                                        (value) => value !== symptom.id
+                                      )
+                                    );
+                              }}
+                              className={cn(
+                                "mt-1",
+                                isSelected ? "border-pink-500 bg-pink-500" : "border-gray-300"
+                              )}
+                            />
+                            <div className="flex-1">
+                              <FormLabel className={cn(
+                                "font-normal cursor-pointer",
+                                isSelected ? "text-pink-700 font-medium" : "text-gray-700"
+                              )}>
+                                {symptom.name}
+                                <p className={cn(
+                                  "text-xs mt-1",
+                                  isSelected ? "text-pink-600" : "text-gray-500"
+                                )}>
+                                  {symptom.description}
+                                </p>
+                              </FormLabel>
+                            </div>
+                            {isSelected && (
+                              <Check className="h-4 w-4 text-pink-500 mt-1" />
+                            )}
+                          </div>
                         </FormControl>
-                        <FormLabel className="font-normal">
-                          {symptom.name}
-                          <p className="text-xs text-muted-foreground">{symptom.description}</p>
-                        </FormLabel>
                       </FormItem>
                     );
                   }}
@@ -172,7 +205,9 @@ const FormStep2 = ({ form }: { form: any }) => {
 
 const FormStep3 = ({ form }: { form: any }) => {
   const mentalSymptomsList = SYMPTOMS.filter(s => s.category === 'mental');
-  
+  const selectedSymptoms = form.watch('mentalSymptoms') || [];
+  const selectedWeight = form.watch('weightChanges');
+
   return (
     <>
       <FormField
@@ -182,40 +217,63 @@ const FormStep3 = ({ form }: { form: any }) => {
           <FormItem>
             <div className="mb-4">
               <FormLabel className="text-base">Which mental/emotional symptoms do you experience?</FormLabel>
-              <FormDescription>
-                Select all that apply to you
-              </FormDescription>
+              <FormDescription>Select all that apply to you</FormDescription>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {mentalSymptomsList.map((symptom) => (
                 <FormField
                   key={symptom.id}
                   control={form.control}
                   name="mentalSymptoms"
                   render={({ field }) => {
+                    const selectedSymptoms = field.value as string[];
+                    const isSelected = selectedSymptoms.includes(symptom.id);
                     return (
                       <FormItem
-                        key={symptom.id}
                         className="flex flex-row items-start space-x-3 space-y-0"
                       >
                         <FormControl>
-                          <Checkbox
-                            checked={field.value?.includes(symptom.id)}
-                            onCheckedChange={(checked) => {
-                              return checked
-                                ? field.onChange([...field.value, symptom.id])
-                                : field.onChange(
-                                    field.value?.filter(
-                                      (value: string) => value !== symptom.id
-                                    )
-                                  );
-                            }}
-                          />
+                          <div className={cn(
+                            "relative flex items-start space-x-3 rounded-lg border-2 p-3 cursor-pointer transition-all duration-200",
+                            isSelected
+                              ? "border-pink-500 bg-pink-50 shadow-md"
+                              : "border-gray-200 hover:border-pink-300 hover:bg-pink-25"
+                          )}>
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={(checked) => {
+                                return checked
+                                  ? field.onChange([...selectedSymptoms, symptom.id])
+                                  : field.onChange(
+                                      selectedSymptoms.filter(
+                                        (value) => value !== symptom.id
+                                      )
+                                    );
+                              }}
+                              className={cn(
+                                "mt-1",
+                                isSelected ? "border-pink-500 bg-pink-500" : "border-gray-300"
+                              )}
+                            />
+                            <div className="flex-1">
+                              <FormLabel className={cn(
+                                "font-normal cursor-pointer",
+                                isSelected ? "text-pink-700 font-medium" : "text-gray-700"
+                              )}>
+                                {symptom.name}
+                                <p className={cn(
+                                  "text-xs mt-1",
+                                  isSelected ? "text-pink-600" : "text-gray-500"
+                                )}>
+                                  {symptom.description}
+                                </p>
+                              </FormLabel>
+                            </div>
+                            {isSelected && (
+                              <Check className="h-4 w-4 text-pink-500 mt-1" />
+                            )}
+                          </div>
                         </FormControl>
-                        <FormLabel className="font-normal">
-                          {symptom.name}
-                          <p className="text-xs text-muted-foreground">{symptom.description}</p>
-                        </FormLabel>
                       </FormItem>
                     );
                   }}
@@ -234,7 +292,10 @@ const FormStep3 = ({ form }: { form: any }) => {
             <FormLabel>Have you experienced any weight changes?</FormLabel>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
               <FormControl>
-                <SelectTrigger>
+                <SelectTrigger className={cn(
+                  "transition-all duration-200",
+                  selectedWeight ? "border-pink-500 bg-pink-50" : "border-gray-300"
+                )}>
                   <SelectValue placeholder="Select weight change pattern" />
                 </SelectTrigger>
               </FormControl>
@@ -253,109 +314,131 @@ const FormStep3 = ({ form }: { form: any }) => {
   );
 };
 
-const FormStep4 = ({ form }: { form: any }) => (
-  <>
-    <FormField
-      control={form.control}
-      name="sugarCravings"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>How would you rate your sugar or carb cravings?</FormLabel>
-          <Select onValueChange={field.onChange} defaultValue={field.value}>
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Select craving intensity" />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              <SelectItem value="none">None - I rarely crave sweets</SelectItem>
-              <SelectItem value="mild">Mild - Occasional cravings</SelectItem>
-              <SelectItem value="moderate">Moderate - Regular cravings</SelectItem>
-              <SelectItem value="severe">Severe - Strong, frequent cravings</SelectItem>
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
+const FormStep4 = ({ form }: { form: any }) => {
+  const selectedCravings = form.watch('sugarCravings');
+  const selectedEnergy = form.watch('energyLevels');
+  
+  return (
+    <>
+      <FormField
+        control={form.control}
+        name="sugarCravings"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>How would you rate your sugar or carb cravings?</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger className={cn(
+                  "transition-all duration-200",
+                  selectedCravings ? "border-pink-500 bg-pink-50" : "border-gray-300"
+                )}>
+                  <SelectValue placeholder="Select craving intensity" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="none">None - I rarely crave sweets</SelectItem>
+                <SelectItem value="mild">Mild - Occasional cravings</SelectItem>
+                <SelectItem value="moderate">Moderate - Regular cravings</SelectItem>
+                <SelectItem value="severe">Severe - Strong, frequent cravings</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
-    <FormField
-      control={form.control}
-      name="energyLevels"
-      render={({ field }) => (
-        <FormItem className="mt-6">
-          <FormLabel>How would you describe your energy levels?</FormLabel>
-          <Select onValueChange={field.onChange} defaultValue={field.value}>
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Select energy level" />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              <SelectItem value="high">High - Energetic most of the day</SelectItem>
-              <SelectItem value="normal">Normal - Generally good energy</SelectItem>
-              <SelectItem value="low">Low - Often tired</SelectItem>
-              <SelectItem value="very-low">Very low - Exhausted most days</SelectItem>
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  </>
-);
+      <FormField
+        control={form.control}
+        name="energyLevels"
+        render={({ field }) => (
+          <FormItem className="mt-6">
+            <FormLabel>How would you describe your energy levels?</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger className={cn(
+                  "transition-all duration-200",
+                  selectedEnergy ? "border-pink-500 bg-pink-50" : "border-gray-300"
+                )}>
+                  <SelectValue placeholder="Select energy level" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="high">High - Energetic most of the day</SelectItem>
+                <SelectItem value="normal">Normal - Generally good energy</SelectItem>
+                <SelectItem value="low">Low - Often tired</SelectItem>
+                <SelectItem value="very-low">Very low - Exhausted most days</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </>
+  );
+};
 
-const FormStep5 = ({ form }: { form: any }) => (
-  <>
-    <FormField
-      control={form.control}
-      name="stressLevel"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>How would you rate your stress levels?</FormLabel>
-          <Select onValueChange={field.onChange} defaultValue={field.value}>
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Select stress level" />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              <SelectItem value="low">Low - Rarely feel stressed</SelectItem>
-              <SelectItem value="moderate">Moderate - Occasionally stressed</SelectItem>
-              <SelectItem value="high">High - Often stressed</SelectItem>
-              <SelectItem value="very-high">Very high - Constantly stressed</SelectItem>
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
+const FormStep5 = ({ form }: { form: any }) => {
+  const selectedStress = form.watch('stressLevel');
+  const selectedSleep = form.watch('sleepQuality');
+  
+  return (
+    <>
+      <FormField
+        control={form.control}
+        name="stressLevel"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>How would you rate your stress levels?</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger className={cn(
+                  "transition-all duration-200",
+                  selectedStress ? "border-pink-500 bg-pink-50" : "border-gray-300"
+                )}>
+                  <SelectValue placeholder="Select stress level" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="low">Low - Rarely feel stressed</SelectItem>
+                <SelectItem value="moderate">Moderate - Occasionally stressed</SelectItem>
+                <SelectItem value="high">High - Often stressed</SelectItem>
+                <SelectItem value="very-high">Very high - Constantly stressed</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
-    <FormField
-      control={form.control}
-      name="sleepQuality"
-      render={({ field }) => (
-        <FormItem className="mt-6">
-          <FormLabel>How would you describe your sleep quality?</FormLabel>
-          <Select onValueChange={field.onChange} defaultValue={field.value}>
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Select sleep quality" />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              <SelectItem value="good">Good - Fall asleep easily and wake refreshed</SelectItem>
-              <SelectItem value="fair">Fair - Occasional sleep issues</SelectItem>
-              <SelectItem value="poor">Poor - Frequent trouble sleeping</SelectItem>
-              <SelectItem value="very-poor">Very poor - Severe insomnia or sleep disturbances</SelectItem>
-            </SelectContent>
-          </Select>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  </>
-);
+      <FormField
+        control={form.control}
+        name="sleepQuality"
+        render={({ field }) => (
+          <FormItem className="mt-6">
+            <FormLabel>How would you describe your sleep quality?</FormLabel>
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger className={cn(
+                  "transition-all duration-200",
+                  selectedSleep ? "border-pink-500 bg-pink-50" : "border-gray-300"
+                )}>
+                  <SelectValue placeholder="Select sleep quality" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="good">Good - Fall asleep easily and wake refreshed</SelectItem>
+                <SelectItem value="fair">Fair - Occasional sleep issues</SelectItem>
+                <SelectItem value="poor">Poor - Frequent trouble sleeping</SelectItem>
+                <SelectItem value="very-poor">Very poor - Severe insomnia or sleep disturbances</SelectItem>
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </>
+  );
+};
 
 export function SymptomCheckerPage() {
   const [step, setStep] = useState(0);
@@ -463,6 +546,13 @@ export function SymptomCheckerPage() {
                 {step === 3 && 'Information about cravings and energy'}
                 {step === 4 && 'Almost done! Let\'s talk about stress and sleep'}
               </CardDescription>
+              {/* Progress bar */}
+              <div className="w-full bg-gray-200 rounded-full h-2 mt-4">
+                <div 
+                  className="bg-gradient-to-r from-pink-500 to-lavender-500 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${((step + 1) / formSteps.length) * 100}%` }}
+                ></div>
+              </div>
             </CardHeader>
             <CardContent>
               <Form {...form}>
@@ -480,7 +570,11 @@ export function SymptomCheckerPage() {
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back
               </Button>
-              <Button onClick={next} disabled={loading}>
+              <Button 
+                onClick={next} 
+                disabled={loading}
+                className="bg-gradient-to-r from-pink-500 to-lavender-500 hover:from-pink-600 hover:to-lavender-600"
+              >
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -31,11 +31,13 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { Loader2, RefreshCw, Save, PlusCircle, Calendar, BookHeart, BadgeCheck } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, RefreshCw, Save, PlusCircle, Calendar, BookHeart, BadgeCheck, MessageCircle, Heart, Sparkles } from 'lucide-react';
 import { useAuth } from '@/providers/AuthProvider';
 import { JournalEntry } from '@/types';
 import { JOURNAL_PROMPTS } from '@/lib/constants';
 import { format } from 'date-fns';
+import { AIChat } from '@/components/AIChat';
 
 export function JournalPage() {
   const { user } = useAuth();
@@ -48,6 +50,7 @@ export function JournalPage() {
   const [sentiment, setSentiment] = useState<'calm' | 'anxious' | 'hopeful' | null>(null);
   const [sentimentLoading, setSentimentLoading] = useState(false);
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
+  const [showAIChat, setShowAIChat] = useState(false);
 
   useEffect(() => {
     // Load saved journal entries from localStorage
@@ -144,10 +147,20 @@ export function JournalPage() {
               Record your thoughts and track your mental health journey
             </p>
           </div>
-          <Button onClick={() => setIsNewEntryOpen(true)}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            New Entry
-          </Button>
+          <div className="flex space-x-2">
+            <Button 
+              variant="outline"
+              onClick={() => setShowAIChat(true)}
+              className="border-pink-300 text-pink-600 hover:bg-pink-50"
+            >
+              <MessageCircle className="mr-2 h-4 w-4" />
+              Chat with Lia
+            </Button>
+            <Button onClick={() => setIsNewEntryOpen(true)}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              New Entry
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="entries">
@@ -164,18 +177,61 @@ export function JournalPage() {
           
           <TabsContent value="entries">
             {journalEntries.length === 0 ? (
-              <Card className="bg-muted/50">
-                <CardHeader>
-                  <CardTitle>No entries yet</CardTitle>
-                  <CardDescription>
-                    Start journaling to track your PCOS journey
+              <Card className="bg-gradient-to-br from-pink-50 to-lavender-50 border-pink-200">
+                <CardHeader className="text-center">
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-pink-100 to-lavender-100">
+                    <Heart className="h-8 w-8 text-pink-500" />
+                  </div>
+                  <CardTitle className="text-xl">Start Your AI-Powered Journal</CardTitle>
+                  <CardDescription className="text-base">
+                    Hi! Want to start your AI-powered journal? Chat with me to add your first entry.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="flex justify-center py-8">
-                  <Button onClick={() => setIsNewEntryOpen(true)} variant="outline">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Create your first entry
-                  </Button>
+                <CardContent className="text-center space-y-4">
+                  <Alert className="bg-white/50 border-pink-200">
+                    <Sparkles className="h-4 w-4 text-pink-500" />
+                    <AlertDescription className="text-pink-800">
+                      <strong>Meet Lia!</strong> I'm your AI companion who can help you process your thoughts, 
+                      understand your emotions, and create meaningful journal entries together.
+                    </AlertDescription>
+                  </Alert>
+                  
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Button 
+                      onClick={() => setShowAIChat(true)}
+                      className="bg-gradient-to-r from-pink-500 to-lavender-500 hover:from-pink-600 hover:to-lavender-600"
+                    >
+                      <MessageCircle className="mr-2 h-4 w-4" />
+                      Chat with Lia to Start
+                    </Button>
+                    <Button 
+                      onClick={() => setIsNewEntryOpen(true)} 
+                      variant="outline"
+                      className="border-pink-300 text-pink-600 hover:bg-pink-50"
+                    >
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Write Directly
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-6">
+                    <div className="text-sm text-gray-600 bg-white/30 rounded-lg p-3">
+                      <strong>💭 Emotional Processing</strong><br />
+                      Talk through your feelings with Lia
+                    </div>
+                    <div className="text-sm text-gray-600 bg-white/30 rounded-lg p-3">
+                      <strong>🌱 Growth Insights</strong><br />
+                      Discover patterns in your journey
+                    </div>
+                    <div className="text-sm text-gray-600 bg-white/30 rounded-lg p-3">
+                      <strong>💝 PCOS Support</strong><br />
+                      Specialized understanding for your needs
+                    </div>
+                    <div className="text-sm text-gray-600 bg-white/30 rounded-lg p-3">
+                      <strong>📝 Smart Journaling</strong><br />
+                      AI-assisted reflection and writing
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             ) : (
@@ -183,7 +239,7 @@ export function JournalPage() {
                 {journalEntries.map((entry) => (
                   <Card 
                     key={entry.id} 
-                    className="hover:shadow-md transition-shadow"
+                    className="hover:shadow-md transition-shadow cursor-pointer"
                     onClick={() => setSelectedEntryId(entry.id)}
                   >
                     <CardHeader className="pb-2">
@@ -221,6 +277,29 @@ export function JournalPage() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* AI Chat Dialog */}
+        <Dialog open={showAIChat} onOpenChange={setShowAIChat}>
+          <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-hidden">
+            <DialogHeader>
+              <DialogTitle className="flex items-center">
+                <Heart className="mr-2 h-5 w-5 text-pink-500" />
+                Chat with Lia - Your AI Journal Companion
+              </DialogTitle>
+              <DialogDescription>
+                Share your thoughts and feelings. Lia will help you process them and create a meaningful journal entry.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex-1 overflow-hidden">
+              <AIChat />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowAIChat(false)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* New Entry Dialog */}
         <Dialog open={isNewEntryOpen} onOpenChange={setIsNewEntryOpen}>
