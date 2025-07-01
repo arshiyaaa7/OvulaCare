@@ -34,7 +34,14 @@ OvulaCare is a smart, AI-assisted web platform that helps women with PCOS track 
   Get AI-powered wellness tips tailored to your symptom patterns.
 
 ---
+## 🖼️ Preview Screens
 
+Here’s a quick look at OvulaCare in action:
+![Ovula1](https://github.com/user-attachments/assets/377552a2-51f9-4e23-85a6-c6b55402f80d)
+![Ovula2](https://github.com/user-attachments/assets/4e861504-30de-4774-841b-5cd882c728d1)
+![Ovula6](https://github.com/user-attachments/assets/f9856508-140e-486f-8de9-8b0a0d8c1fd0)
+
+---
 ## 🎥 Demo Video
 
 See OvulaCare in action:  
